@@ -1,0 +1,77 @@
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
+START TRANSACTION;
+SET time_zone = "+00:00";
+CREATE DATABASE IF NOT EXISTS `subredditdb` DEFAULT CHARACTER SET latin1 COLLATE latin1_general_ci;
+USE `subredditdb`;
+
+CREATE TABLE `subreddits` (
+	`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`categoryid` int(11) NOT NULL,
+	`url` varchar(255) NOT NULL,
+	`description` varchar(255),
+	`submitter` int(8) NOT NULL,
+	`multiplier` int(8) NOT NULL DEFAULT 100,
+	`creationdate` TIMESTAMP DEFAULT NOW(),
+	`lastmodified` TIMESTAMP DEFAULT NOW()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `categories` (
+	`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`name` varchar(255) NOT NULL,
+	`titular` int(11) NULL,
+    FOREIGN KEY (`titular`) REFERENCES `subreddits`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+ALTER TABLE `subreddits`
+ADD FOREIGN KEY (`categoryid`) REFERENCES `categories`(`id`);
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `userName` varchar(50) NOT NULL,
+  `passwordHash` char(60) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO `users` (`userName`, `passwordHash`) VALUES
+('scr4', '$2y$10$0dhe3ngxlmzgZrX6MpSHkeoDQ.dOaceVTomUq/nQXV0vSkFojq.VG');
+
+CREATE TABLE `orders` (
+  	`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  	`userid` int(11) NOT NULL,
+  	`creditCardNumber` char(16) NOT NULL,
+  	`creditCardHolder` varchar(255) NOT NULL,
+    FOREIGN KEY (`userid`) REFERENCES `users`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `orderedsubreddits` (
+  	`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  	`orderid` int(11) NOT NULL,
+  	`subredditid` int(11) NOT NULL,
+    FOREIGN KEY (`orderid`) REFERENCES `orders`(`id`),
+    FOREIGN KEY (`subredditid`) REFERENCES `subreddits`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `rating` (
+    `ratingid` int(8) AUTO_INCREMENT PRIMARY KEY,
+    `subredditid` int(8),
+    `userid` int(8),
+    `value` SMALLINT,
+    FOREIGN KEY (`subredditid`) REFERENCES `subreddits`(`id`),
+    FOREIGN KEY (`userid`) REFERENCES `users`(`id`)
+);
+
+CREATE TABLE `comments` (
+	`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`subredditid` int(8),
+    `userid` int(8),
+	`content` varchar(255),
+	`creationdate` TIMESTAMP DEFAULT NOW(),
+	`lastmodified` TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (`subredditid`) REFERENCES `subreddits`(`id`),
+    FOREIGN KEY (`userid`) REFERENCES `users`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO categories (name) 
+VALUES ('ask'),('gaming'),('dark'),('memes'),('pics'),('news'),('politics');
+
+COMMIT;
